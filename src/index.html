@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resume Builder by Mpho</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Resume Builder - Created by Mpho</h1>
+
+    <form id="resumeForm">
+      <label>Full Name:<br /><input type="text" id="fullName" required /></label><br />
+      <label>Email:<br /><input type="email" id="email" /></label><br />
+      <label>Phone:<br /><input type="text" id="phone" /></label><br />
+      <label>LinkedIn:<br /><input type="url" id="linkedin" /></label><br />
+      <label>GitHub:<br /><input type="url" id="github" /></label><br />
+      
+      <label>Summary:<br />
+        <textarea id="summary" rows="4" placeholder="Write a brief summary"></textarea>
+      </label><br />
+
+      <label>Experience (one per line):<br />
+        <textarea id="experience" rows="5" placeholder="Job 1\nJob 2\nJob 3"></textarea>
+      </label><br />
+
+      <label>Education (one per line):<br />
+        <textarea id="education" rows="4" placeholder="Degree 1\nDegree 2"></textarea>
+      </label><br />
+
+      <label>Awards (optional, one per line):<br />
+        <textarea id="awards" rows="3" placeholder="Award 1\nAward 2"></textarea>
+      </label><br />
+
+      <label>Upload Photo:<br />
+        <input type="file" id="photoInput" accept="image/*" />
+      </label>
+      <br />
+      <img id="imagePreview" class="hidden" style="width:100px; height:100px; object-fit:cover; margin-top:8px;" />
+      <br />
+
+      <label>Select Template:<br />
+        <select id="templateSelect">
+          <option value="1">Template 1 (Purple Modern)</option>
+          <option value="2">Template 2 (Blue Classic)</option>
+          <option value="3">Template 3 (Green Compact)</option>
+        </select>
+      </label>
+      <br /><br />
+
+      <button type="submit">Download PDF</button>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
