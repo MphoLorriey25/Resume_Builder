@@ -21,7 +21,7 @@ photoInput.addEventListener("change", () => {
 });
 
 // Replace 'YOUR_COHERE_API_KEY' with your actual key
-const COHERE_API_KEY = "";
+const COHERE_API_KEY = "RFoYfZ3GqLtW3Vsp3lucIIKzh9WkX227c3aogFBf";
 
 generateSummaryBtn.addEventListener("click", async () => {
   const name = form.fullName.value.trim();
