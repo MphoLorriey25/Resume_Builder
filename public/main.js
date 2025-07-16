@@ -1,57 +1,47 @@
-// Elements
 const form = document.getElementById("resume-form");
 const enhanceBtn = document.getElementById("enhance-summary");
-const profileImageInput = document.getElementById("profileImage");
-const imagePreview = document.getElementById("imagePreview");
-const templateSelector = document.getElementById("templateSelector");
-const downloadWordBtn = document.getElementById("downloadWord");
+const summaryField = document.getElementById("summary");
+const downloadWordBtn = document.getElementById("download-word");
+const imageInput = document.getElementById("profile-picture");
+const imagePreview = document.getElementById("image-preview");
+const templates = document.querySelectorAll(".template-select input");
 
-let selectedTemplate = "1";
-
-// Template selection
-templateSelector.addEventListener("click", (e) => {
-  if (e.target.classList.contains("template-preview")) {
-    [...templateSelector.children].forEach(img => img.classList.remove("selected"));
-    e.target.classList.add("selected");
-    selectedTemplate = e.target.dataset.template;
-  }
-});
-
-// Image preview
-profileImageInput.addEventListener("change", () => {
-  const file = profileImageInput.files[0];
-  if (!file) {
+// Preview uploaded image
+imageInput.addEventListener("change", () => {
+  const file = imageInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreview.src = e.target.result;
+      imagePreview.classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+  } else {
     imagePreview.src = "";
     imagePreview.classList.add("hidden");
-    return;
   }
-  const reader = new FileReader();
-  reader.onload = () => {
-    imagePreview.src = reader.result;
-    imagePreview.classList.remove("hidden");
-  };
-  reader.readAsDataURL(file);
 });
 
-// Enhance summary with Cohere AI
+// Enhance summary with AI
 enhanceBtn.addEventListener("click", async () => {
-  const summaryField = document.getElementById("summary");
-  if (!summaryField.value.trim()) {
+  const prompt = summaryField.value.trim();
+  if (!prompt) {
     alert("Please enter a summary to enhance.");
     return;
   }
 
   enhanceBtn.disabled = true;
   enhanceBtn.textContent = "Enhancing...";
-  const prompt = `Improve and professionalize this resume summary:\n\n${summaryField.value}\n\nImproved summary:`;
 
   try {
-    const res = await fetch("/api/cohere.js", {
+    const res = await fetch("/api/cohere", {  // <-- Corrected endpoint here
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt }),
     });
+
     const data = await res.json();
+
     if (data.text) {
       summaryField.value = data.text.trim();
     } else {
@@ -65,6 +55,14 @@ enhanceBtn.addEventListener("click", async () => {
   }
 });
 
+// Get selected template id
+function getSelectedTemplate() {
+  for (const t of templates) {
+    if (t.checked) return t.value;
+  }
+  return "1"; // default
+}
+
 // Generate PDF on submit
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -72,13 +70,14 @@ form.addEventListener("submit", async (e) => {
   const formData = new FormData(form);
   const resumeData = Object.fromEntries(formData.entries());
 
-  // Add skills array
+  // Process multi-line fields as arrays
   resumeData.skills = resumeData.skills.split(",").map(s => s.trim()).filter(Boolean);
   resumeData.experience = resumeData.experience.split("\n").map(s => s.trim()).filter(Boolean);
   resumeData.education = resumeData.education.split("\n").map(s => s.trim()).filter(Boolean);
   resumeData.awards = resumeData.awards.split("\n").map(s => s.trim()).filter(Boolean);
 
-  // Pass data and template to backend or generate PDF here
+  const selectedTemplate = getSelectedTemplate();
+
   generatePDF(resumeData, selectedTemplate);
 });
 
@@ -92,56 +91,85 @@ downloadWordBtn.addEventListener("click", () => {
   resumeData.education = resumeData.education.split("\n").map(s => s.trim()).filter(Boolean);
   resumeData.awards = resumeData.awards.split("\n").map(s => s.trim()).filter(Boolean);
 
+  const selectedTemplate = getSelectedTemplate();
+
   generateWord(resumeData, selectedTemplate);
 });
 
-// PDF generation using jsPDF + html2canvas
+// PDF generation using jsPDF + embed image + template switch
 async function generatePDF(data, template) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // Simple PDF content example (customize templates later)
-  doc.setFontSize(22);
-  doc.setTextColor("#7c3aed");
-  doc.text(data.fullName || "", 20, 20);
+  // Add profile picture if uploaded
+  if (imagePreview.src && !imagePreview.classList.contains("hidden")) {
+    try {
+      doc.addImage(imagePreview.src, "JPEG", 150, 10, 40, 40);
+    } catch (e) {
+      console.warn("Failed to add image to PDF:", e);
+    }
+  }
 
+  // Template styling examples:
+  if (template === "1") {
+    doc.setFontSize(22);
+    doc.setTextColor("#7c3aed");
+  } else if (template === "2") {
+    doc.setFontSize(24);
+    doc.setTextColor("#1d4ed8"); // blue
+  } else if (template === "3") {
+    doc.setFontSize(20);
+    doc.setTextColor("#047857"); // green
+  }
+
+  // Name and contacts
+  doc.text(data.fullName || "", 20, 30);
   doc.setFontSize(14);
   doc.setTextColor("#000");
-  if (data.email) doc.text(`Email: ${data.email}`, 20, 30);
-  if (data.phone) doc.text(`Phone: ${data.phone}`, 20, 38);
-  if (data.linkedin) doc.text(`LinkedIn: ${data.linkedin}`, 20, 46);
-  if (data.github) doc.text(`GitHub: ${data.github}`, 20, 54);
+  if (data.email) doc.text(`Email: ${data.email}`, 20, 38);
+  if (data.phone) doc.text(`Phone: ${data.phone}`, 20, 46);
+  if (data.linkedin) doc.text(`LinkedIn: ${data.linkedin}`, 20, 54);
+  if (data.github) doc.text(`GitHub: ${data.github}`, 20, 62);
 
+  // Summary
   doc.setFontSize(16);
-  doc.text("Professional Summary", 20, 66);
+  doc.setTextColor("#000");
+  doc.text("Professional Summary", 20, 78);
   doc.setFontSize(12);
-  doc.text(doc.splitTextToSize(data.summary || "", 170), 20, 74);
+  doc.text(doc.splitTextToSize(data.summary || "", 170), 20, 86);
 
-  // Add experience
+  // Experience
+  let y = 106;
   doc.setFontSize(16);
-  doc.text("Experience", 20, 94);
+  doc.text("Experience", 20, y);
   doc.setFontSize(12);
-  data.experience.forEach((item, i) => {
-    doc.text(`- ${item}`, 25, 102 + i * 8);
+  y += 8;
+  data.experience.forEach((item) => {
+    doc.text(`- ${item}`, 25, y);
+    y += 8;
   });
 
-  // Add education
-  const eduStart = 102 + data.experience.length * 8 + 10;
+  // Education
+  y += 8;
   doc.setFontSize(16);
-  doc.text("Education", 20, eduStart);
+  doc.text("Education", 20, y);
   doc.setFontSize(12);
-  data.education.forEach((item, i) => {
-    doc.text(`- ${item}`, 25, eduStart + 8 + i * 8);
+  y += 8;
+  data.education.forEach((item) => {
+    doc.text(`- ${item}`, 25, y);
+    y += 8;
   });
 
-  // Add awards
-  const awardsStart = eduStart + 8 + data.education.length * 8 + 10;
+  // Awards (if any)
   if (data.awards.length) {
+    y += 8;
     doc.setFontSize(16);
-    doc.text("Awards", 20, awardsStart);
+    doc.text("Awards", 20, y);
     doc.setFontSize(12);
-    data.awards.forEach((item, i) => {
-      doc.text(`- ${item}`, 25, awardsStart + 8 + i * 8);
+    y += 8;
+    data.awards.forEach((item) => {
+      doc.text(`- ${item}`, 25, y);
+      y += 8;
     });
   }
 
@@ -150,7 +178,7 @@ async function generatePDF(data, template) {
 
 // Word generation using docx.js
 async function generateWord(data, template) {
-  const { Document, Packer, Paragraph, TextRun } = window.docx;
+  const { Document, Packer, Paragraph } = window.docx;
 
   const doc = new Document({
     sections: [{
