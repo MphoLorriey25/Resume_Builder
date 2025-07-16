@@ -1,1 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Resume Builder | by Mpho</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 AI Resume Generator</h1>
+    <p class="credit">Created by Mpho using OpenRouter</p>
+
+    <form id="resumeForm">
+      <label>Full Name <input id="fullName" /></label>
+      <label>Email <input id="email" /></label>
+      <label>Phone <input id="phone" /></label>
+      <label>LinkedIn <input id="linkedin" /></label>
+      <label>GitHub <input id="github" /></label>
+      <label>Photo <input type="file" id="photo" accept="image/*" /></label>
+
+      <label>Work Experience <textarea id="experience"></textarea></label>
+      <label>Education <textarea id="education"></textarea></label>
+      <label>Skills <textarea id="skills"></textarea></label>
+      <label>Awards <textarea id="awards"></textarea></label>
+
+      <button type="button" onclick="generateSummary()">✨ Generate Summary</button>
+      <label>Summary <textarea id="summary"></textarea></label>
+
+      <label>Choose Template
+        <select id="templateSelect">
+          <option value="1">Modern</option>
+          <option value="2">Classic</option>
+          <option value="3">Minimal</option>
+        </select>
+      </label>
+
+      <button type="button" onclick="generatePDF()">📄 Download PDF</button>
+    </form>
+  </div>
+
+  <script src="openrouter.js"></script>
+  <script src="templates.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
 
